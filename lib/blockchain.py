@@ -340,16 +340,10 @@ class Blockchain(util.PrintError):
             return 0, 0
         if height <= 28:
             return 0x1e0ffff0, 0x00000FFFF0000000000000000000000000000000000000000000000000000000
-        # if height == 4304776:
-        #     bits = 453668994
-        #     bitsBase = bits & 0xffffff
-        #     bitsN = (bits >> 24) & 0xff
-        #     target = bitsBase << (8 * (bitsN - 3))
-        #     return bits, target
         index = height // 2016
         #print("index %d" % index + " height %d" % height)
         if index < len(self.checkpoints) and (height % 2016 == 0):
-            print("Bailing early index < len(self.checkpoints)")
+            #print("Bailing early index < len(self.checkpoints)")
             _, t, b, _ = self.checkpoints[index]
             return b, t
         if height < 4300128:
@@ -386,7 +380,7 @@ class Blockchain(util.PrintError):
                 bitsN += 1
                 bitsBase >>= 8
             new_bits = bitsN << 24 | bitsBase
-            print("returning new bits")
+            #print("returning new bits")
             return new_bits, bitsBase << (8 * (bitsN-3))
         else:
             #print("returning kgw")
@@ -431,12 +425,12 @@ class Blockchain(util.PrintError):
         bits, target = None, None
         check_bits_target = self.should_check_bits_target(height)
         if(check_bits_target):
-            print("checking bits")
+            #print("checking bits")
             bits, target = self.get_target(height)
         try:
             self.verify_header(header, prev_hash, bits, target, check_bits_target)
         except BaseException as e:
-            print("header not verified %s" % e)
+            #print("header not verified %s" % e)
             return False
         return True
 
@@ -460,7 +454,7 @@ class Blockchain(util.PrintError):
 
 
         if (BlockLastSolvedIndex <= 0 or BlockLastSolvedIndex < PastSecondsMin):
-            print("maybe here")
+            #print("maybe here")
             new_target = bnProofOfWorkLimit
             new_bits = self.convbits(new_target)
             return new_bits, new_target

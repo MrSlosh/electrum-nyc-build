@@ -197,7 +197,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.new_fx_history_signal.connect(self.on_fx_history)
 
         # update fee slider in case we missed the callback
-        self.fee_slider.update()
+        #self.fee_slider.update()
         self.load_wallet(wallet)
         self.connect_slots(gui_object.timer)
         self.fetch_alias()
@@ -309,11 +309,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.history_list.update_item(*args)
         elif event == 'fee':
             if self.config.is_dynfee():
-                self.fee_slider.update()
+                #self.fee_slider.update()
                 self.do_update_fee()
         elif event == 'fee_histogram':
             if self.config.is_dynfee():
-                self.fee_slider.update()
+                #self.fee_slider.update()
                 self.do_update_fee()
             # todo: update only unconfirmed tx
             self.history_list.update()
@@ -1087,8 +1087,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         hbox.addStretch(1)
         grid.addLayout(hbox, 4, 4)
 
-        msg = _('NewYorkCoin transactions are in general not free. A transaction fee is paid by the sender of the funds.') + '\n\n'\
-              + _('The amount of fee can be decided freely by the sender. However, transactions with low fees take more time to be processed.') + '\n\n'\
+        msg = _('NewYorkCoin transactions are laregely free. A transaction fee can be paid by the sender of the funds for the miners.') + '\n\n'\
+              + _('The amount of fee can be decided freely by the sender. However, transactions with low fees may take more time to be processed.') + '\n\n'\
               + _('A suggested fee is automatically added to this field. You may override it. The suggested fee increases with the size of the transaction.')
         self.fee_e_label = HelpLabel(_('Fee'), msg)
 
@@ -1107,11 +1107,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 self.feerate_e.setAmount(None)
             self.fee_e.setModified(False)
 
-            self.fee_slider.activate()
+            #self.fee_slider.activate()
             self.spend_max() if self.is_max else self.update_fee()
 
-        self.fee_slider = FeeSlider(self, self.config, fee_cb)
-        self.fee_slider.setFixedWidth(140)
+        #self.fee_slider = FeeSlider(self, self.config, fee_cb)
+        #self.fee_slider.setFixedWidth(140)
 
         def on_fee_or_feerate(edit_changed, editing_finished):
             edit_other = self.feerate_e if edit_changed == self.fee_e else self.fee_e
@@ -1124,7 +1124,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 # edit_changed was edited just now, so make sure we will
                 # freeze the correct fee setting (this)
                 edit_other.setModified(False)
-            self.fee_slider.deactivate()
+            #self.fee_slider.deactivate()
             self.update_fee()
 
         class TxSizeLabel(QLabel):
@@ -1178,7 +1178,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         vbox_feecontrol = QVBoxLayout()
         vbox_feecontrol.addWidget(self.fee_adv_controls)
-        vbox_feecontrol.addWidget(self.fee_slider)
+        #vbox_feecontrol.addWidget(self.fee_slider)
 
         grid.addLayout(vbox_feecontrol, 5, 1, 1, -1)
 
@@ -1331,7 +1331,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             # Displayed fee/fee_rate values are set according to user input.
             # Due to rounding or dropping dust in CoinChooser,
             # actual fees often differ somewhat.
-            if freeze_feerate or self.fee_slider.is_active():
+            if freeze_feerate:# or self.fee_slider.is_active():
                 displayed_feerate = self.feerate_e.get_amount()
                 if displayed_feerate:
                     displayed_feerate = displayed_feerate // 1000
@@ -1508,18 +1508,25 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             return
 
         amount = tx.output_value() if self.is_max else sum(map(lambda x:x[2], outputs))
+        if (amount < simple_config.DUST_LIMIT):
+            self.show_error('\n'.join([
+                _("The transaction amount is at or below the dust threshold limit %d" % (simple_config.DUST_LIMIT /1000)),
+                _("Try to raise your transaction fee, or increase the amount to send.")
+            ]))
+            return
+
         fee = tx.get_fee()
 
         use_rbf = self.config.get('use_rbf', True)
         if use_rbf:
             tx.set_rbf(True)
 
-        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
-            self.show_error('\n'.join([
-                _("This transaction requires a higher fee, or it will not be propagated by your current server"),
-                _("Try to raise your transaction fee, or use a server with a lower relay fee.")
-            ]))
-            return
+        # if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
+        #     self.show_error('\n'.join([
+        #         _("This transaction requires a higher fee, or it will not be propagated by your current server"),
+        #         _("Try to raise your transaction fee, or use a server with a lower relay fee.")
+        #     ]))
+        #     return
 
         if preview:
             self.show_transaction(tx, tx_desc)
@@ -1728,7 +1735,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                   self.fee_e, self.feerate_e]:
             e.setText('')
             e.setFrozen(False)
-        self.fee_slider.activate()
+        #self.fee_slider.activate()
         self.feerate_e.setAmount(self.config.fee_per_byte())
         self.size_e.setAmount(0)
         self.feerounding_icon.setVisible(False)
@@ -2643,22 +2650,25 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         )
         fee_type_label = HelpLabel(_('Fee estimation') + ':', msg)
         fee_type_combo = QComboBox()
-        fee_type_combo.addItems([_('Static'), _('ETA'), _('Mempool')])
+        fee_type_combo.addItems([_('Static')])#, _('ETA'), _('Mempool')])
         fee_type_combo.setCurrentIndex((2 if self.config.use_mempool_fees() else 1) if self.config.is_dynfee() else 0)
         def on_fee_type(x):
             self.config.set_key('mempool_fees', x==2)
             self.config.set_key('dynamic_fees', x>0)
-            self.fee_slider.update()
+            #self.fee_slider.update()
         fee_type_combo.currentIndexChanged.connect(on_fee_type)
         fee_widgets.append((fee_type_label, fee_type_combo))
 
         feebox_cb = QCheckBox(_('Edit fees manually'))
-        feebox_cb.setChecked(self.config.get('show_fee', False))
+        feebox_cb.setChecked(self.config.get('show_fee', True))
         feebox_cb.setToolTip(_("Show fee edit box in send tab."))
-        def on_feebox(x):
-            self.config.set_key('show_fee', x == Qt.Checked)
-            self.fee_adv_controls.setVisible(bool(x))
-        feebox_cb.stateChanged.connect(on_feebox)
+        feebox_cb.setEnabled(False)
+        #def on_feebox(x):
+            #self.config.set_key('show_fee', x == True)
+            #self.fee_adv_controls.setVisible(bool(x))
+        #feebox_cb.stateChanged.connect(on_feebox)
+        #self.config.set_key('show_fee', x == True)
+        self.fee_adv_controls.setVisible(bool(True))
         fee_widgets.append((feebox_cb, None))
 
         use_rbf_cb = QCheckBox(_('Use Replace-By-Fee'))
@@ -3109,9 +3119,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             fee = fee_rate * total_size / 1000
             fee = min(max_fee, fee)
             fee_e.setAmount(fee)
-        fee_slider = FeeSlider(self, self.config, on_rate)
-        fee_slider.update()
-        grid.addWidget(fee_slider, 4, 1)
+        #fee_slider = FeeSlider(self, self.config, on_rate)
+        #fee_slider.update()
+        #grid.addWidget(fee_slider, 4, 1)
         vbox.addLayout(grid)
         vbox.addLayout(Buttons(CancelButton(d), OkButton(d)))
         if not d.exec_():
@@ -3143,8 +3153,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         def on_rate(dyn, pos, fee_rate):
             fee = fee_rate * tx_size / 1000
             fee_e.setAmount(fee)
-        fee_slider = FeeSlider(self, self.config, on_rate)
-        vbox.addWidget(fee_slider)
+        #fee_slider = FeeSlider(self, self.config, on_rate)
+        #vbox.addWidget(fee_slider)
         cb = QCheckBox(_('Final'))
         vbox.addWidget(cb)
         vbox.addLayout(Buttons(CancelButton(d), OkButton(d)))

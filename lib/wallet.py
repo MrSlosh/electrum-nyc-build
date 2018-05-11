@@ -1261,7 +1261,7 @@ class Abstract_Wallet(PrintError):
             _type, data, value = outputs[i_max]
             outputs[i_max] = (_type, data, 0)
             tx = Transaction.from_io(inputs, outputs[:])
-            fee = fee_estimator(tx.estimated_size())
+            fee += fee_estimator(tx.estimated_size())
             amount = max(0, sendable - tx.output_value() - fee)
             outputs[i_max] = (_type, data, amount)
             tx = Transaction.from_io(inputs, outputs[:])
@@ -1275,6 +1275,8 @@ class Abstract_Wallet(PrintError):
 
     def mktx(self, outputs, password, config, fee=None, change_addr=None, domain=None):
         coins = self.get_spendable_coins(domain, config)
+        # add a fee for dusty outputs
+        fee = config.add_fee_for_dust(outputs)
         tx = self.make_unsigned_transaction(coins, outputs, config, fee, change_addr)
         self.sign_transaction(tx, password)
         return tx
