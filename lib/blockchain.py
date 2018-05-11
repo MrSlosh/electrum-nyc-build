@@ -27,6 +27,10 @@ from . import util
 from . import bitcoin
 from . import constants
 from .bitcoin import *
+from decimal import Decimal
+from decimal import getcontext
+
+
 
 try:
     import scrypt
@@ -123,6 +127,7 @@ class Blockchain(util.PrintError):
         self.checkpoints = constants.net.CHECKPOINTS
         self.parent_id = parent_id
         self.lock = threading.Lock()
+        self.outliers = 0; # Keep track of failed header verifications
         with self.lock:
             self.update_size()
 
@@ -174,17 +179,19 @@ class Blockchain(util.PrintError):
             return
         if check_bits_target:
             if bits != header.get('bits'):
-                raise BaseException("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+                print("bits mistmatch at height %d" % header.get('block_height') + ", outliers++")
+                #raise BaseException("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+                # increase count of failed verifications
+                self.outliers += 1
 
             _powhash = pow_hash_header(header)
             if int('0x' + _powhash, 16) > target:
                 raise BaseException("insufficient proof of work: %s vs target %s" % (int('0x' + _powhash, 16), target))
 
     def should_check_bits_target(self, height):
-        return False
-        # index = height // 2016
-        # return (index > len(self.checkpoints) + 1) or \
-        #     (index < len(self.checkpoints) and height % 2016 == 0)
+         index = height // 2016
+         return (index > len(self.checkpoints) + 1) or \
+             (index < len(self.checkpoints) and height % 2016 == 0)
 
     def verify_chunk(self, index, data):
         num = len(data) // 80
@@ -198,11 +205,15 @@ class Blockchain(util.PrintError):
             bits, target = None, None
             check_bits_target = self.should_check_bits_target(index * 2016 + i)
             if(check_bits_target):
-                print("verifying bits")
                 bits, target = self.get_target((index * 2016 + i), headers)
-            #print("verifying header at height %d" % header.get('block_height'))
+
             self.verify_header(header, prev_hash, bits, target, check_bits_target)
             prev_hash = hash_header(header)
+            # If the number of failed verifications reaches higher than 10%, shit a brick
+            if(self.outliers / 2016 > 0.1):
+                raise BaseException("10 percent or more of the chunk is invalid")
+        # reset verfication count for each chunk
+        self.outliers = 0
 
     def path(self):
         d = util.get_headers_dir(self.config)
@@ -329,19 +340,19 @@ class Blockchain(util.PrintError):
             return 0, 0
         if height <= 28:
             return 0x1e0ffff0, 0x00000FFFF0000000000000000000000000000000000000000000000000000000
-        # if height == 468741:
-        #     bits = 469820683
+        # if height == 4304776:
+        #     bits = 453668994
         #     bitsBase = bits & 0xffffff
         #     bitsN = (bits >> 24) & 0xff
         #     target = bitsBase << (8 * (bitsN - 3))
         #     return bits, target
         index = height // 2016
-        print("index %d" % index + " height %d" % height)
+        #print("index %d" % index + " height %d" % height)
         if index < len(self.checkpoints) and (height % 2016 == 0):
-
+            print("Bailing early index < len(self.checkpoints)")
             _, t, b, _ = self.checkpoints[index]
             return b, t
-        if height < 600000:
+        if height < 4300128:
             # newyorkcoin: go back the full period unless it's the first retarget
             first = self.read_header((height - 2016 - 1 if height > 2016 else 0))
             last = self.read_header(height - 1)
@@ -350,7 +361,7 @@ class Blockchain(util.PrintError):
             assert last is not None
             # bits to target
             bits = last.get('bits')
-            print("last read height %d" % last.get('block_height'))
+            #print("last read height %d" % last.get('block_height'))
             bitsN = (bits >> 24) & 0xff
             if not (bitsN >= 0x03 and bitsN <= 0x1e):
                 raise BaseException("First part of bits should be in [0x03, 0x1e]")
@@ -378,7 +389,7 @@ class Blockchain(util.PrintError):
             print("returning new bits")
             return new_bits, bitsBase << (8 * (bitsN-3))
         else:
-            print("returning kgw")
+            #print("returning kgw")
             return self.KimotoGravityWell(height, chain)
 
     def convbits(self, new_target):
@@ -430,20 +441,26 @@ class Blockchain(util.PrintError):
         return True
 
     def KimotoGravityWell(self, height, chain={}):
-        BlocksTargetSpacing = 30  # 30 seconds
+        BlocksTargetSpacing = 0.5 * 60  # 30 seconds
         TimeDaySeconds = 60 * 60 * 24
-        PastSecondsMin = TimeDaySeconds * 0.25
-        PastSecondsMax = TimeDaySeconds * 7
+        PastSecondsMin = TimeDaySeconds * 0.01
+        PastSecondsMax = TimeDaySeconds * 0.14
         PastBlocksMin = PastSecondsMin / BlocksTargetSpacing
         PastBlocksMax = PastSecondsMax / BlocksTargetSpacing
+        PastBlocksMass = 0
 
+        new_target = 0
+        new_bits = 0
         BlockReadingIndex = height - 1
         BlockLastSolvedIndex = height - 1
         TargetBlocksSpacingSeconds = BlocksTargetSpacing
-        PastRateAdjustmentRatio = 1.0
+        PastRateAdjustmentRatio = float(1)
         bnProofOfWorkLimit = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
+
+
         if (BlockLastSolvedIndex <= 0 or BlockLastSolvedIndex < PastSecondsMin):
+            print("maybe here")
             new_target = bnProofOfWorkLimit
             new_bits = self.convbits(new_target)
             return new_bits, new_target
@@ -452,8 +469,10 @@ class Blockchain(util.PrintError):
         if last == None:
             last = self.read_header(BlockLastSolvedIndex)
 
+
         for i in range(1, int(PastBlocksMax)+1):
-            PastBlocksMass = i
+
+            PastBlocksMass = PastBlocksMass + 1
 
             reading = chain.get(BlockReadingIndex)
             if reading == None:
@@ -466,20 +485,23 @@ class Blockchain(util.PrintError):
             if (i == 1):
                 PastDifficultyAverage = self.convbignum(reading.get('bits'))
             else:
-                PastDifficultyAverage = float((self.convbignum(reading.get('bits')) - PastDifficultyAveragePrev) / float(i)) + PastDifficultyAveragePrev
+                pastBits = reading.get('bits')
+                PastDifficultyAverage = float(((self.convbignum(pastBits))- PastDifficultyAveragePrev) / float(i)) + PastDifficultyAveragePrev
 
             PastDifficultyAveragePrev = PastDifficultyAverage
-
+            #print("Height %d" % reading.get('block_height') + " timestamp %d" % reading.get('timestamp'))
             PastRateActualSeconds = last.get('timestamp') - reading.get('timestamp')
             PastRateTargetSeconds = TargetBlocksSpacingSeconds * PastBlocksMass
-            PastRateAdjustmentRatio = 1.0
+            PastRateAdjustmentRatio = float(1.0)
             if (PastRateActualSeconds < 0):
+
                 PastRateActualSeconds = 0.0
 
             if (PastRateActualSeconds != 0 and PastRateTargetSeconds != 0):
                 PastRateAdjustmentRatio = float(PastRateTargetSeconds) / float(PastRateActualSeconds)
+                #print("PastRateAactualseconds %d" % PastRateActualSeconds)
 
-            EventHorizonDeviation = 1 + (0.7084 * pow(float(PastBlocksMass)/float(144), -1.228))
+            EventHorizonDeviation = 1 + ((0.7084) * pow((float(PastBlocksMass)/float(144)), float(-1.228)))
             EventHorizonDeviationFast = EventHorizonDeviation
             EventHorizonDeviationSlow = float(1) / float(EventHorizonDeviation)
 
@@ -488,25 +510,30 @@ class Blockchain(util.PrintError):
                 if ((PastRateAdjustmentRatio <= EventHorizonDeviationSlow) or (PastRateAdjustmentRatio >= EventHorizonDeviationFast)):
                     break
 
-                if (BlockReadingIndex < 1):
-                    break
 
+            if (BlockReadingIndex < 1):
+                break
             BlockReadingIndex = BlockReadingIndex - 1
 
+        #print("PastDifficultyAverage %d" % PastDifficultyAverage)
         bnNew = PastDifficultyAverage
         if (PastRateActualSeconds != 0 and PastRateTargetSeconds != 0):
             bnNew *= float(PastRateActualSeconds)
             bnNew /= float(PastRateTargetSeconds)
-
+        else:
+            print("PastDifficultyAverage Unaltered")
         if (bnNew > bnProofOfWorkLimit):
+            print("bnNew greater than proof of work limit")
             bnNew = bnProofOfWorkLimit
 
         # new target
         new_target = bnNew
+
         new_bits = self.convbits(new_target)
 
-        #print_msg("bits", new_bits , "(", hex(new_bits),")")
-        #print_msg ("PastRateAdjustmentRatio=",PastRateAdjustmentRatio,"EventHorizonDeviationSlow",EventHorizonDeviationSlow,"PastSecondsMin=",PastSecondsMin,"PastSecondsMax=",PastSecondsMax,"PastBlocksMin=",PastBlocksMin,"PastBlocksMax=",PastBlocksMax)
+        #print("bits %d" % new_bits , "(", hex(new_bits),")")
+        #print("target %d" % new_target)
+        #print("PastRateAdjustmentRatio=",PastRateAdjustmentRatio,"EventHorizonDeviationSlow",EventHorizonDeviationSlow,"PastSecondsMin=",PastSecondsMin,"PastSecondsMax=",PastSecondsMax,"PastBlocksMin=",PastBlocksMin,"PastBlocksMax=",PastBlocksMax)
         return new_bits, new_target
 
     def connect_chunk(self, idx, hexdata):

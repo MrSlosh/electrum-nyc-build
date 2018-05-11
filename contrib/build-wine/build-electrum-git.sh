@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME_ROOT=electrum-nyc
+NAME_ROOT=electrum-nyc-build
 PYTHON_VERSION=3.5.4
 
 # These settings probably don't need any change
@@ -19,14 +19,14 @@ set -e
 mkdir -p tmp
 cd tmp
 
-for repo in electrum-nyc electrum-nyc-locale electrum-nyc-icons; do
+for repo in electrum-nyc-build electrum-nyc-locale electrum-nyc-icons; do
     if [ -d $repo ]; then
 	cd $repo
 	git pull
 	git checkout master
 	cd ..
     else
-	URL=https://github.com/pooler/$repo.git
+	URL=https://github.com/MrSlosh/$repo.git
 	git clone -b master $URL $repo
     fi
 done
@@ -39,19 +39,19 @@ for i in ./locale/*; do
 done
 popd
 
-pushd electrum-nyc
+pushd electrum-nyc-build
 if [ ! -z "$1" ]; then
     git checkout $1
 fi
 
-VERSION=`git describe --tags --dirty`
+VERSION=`git describe --tags --dirty --always`
 echo "Last commit: $VERSION"
 find -exec touch -d '2000-11-11T11:11:11+00:00' {} +
 popd
 
 rm -rf $WINEPREFIX/drive_c/electrum-nyc
-cp -r electrum-nyc $WINEPREFIX/drive_c/electrum-nyc
-cp electrum-nyc/LICENCE .
+cp -r electrum-nyc-build $WINEPREFIX/drive_c/electrum-nyc
+cp electrum-nyc-build/LICENCE .
 cp -r electrum-nyc-locale/locale $WINEPREFIX/drive_c/electrum-nyc/lib/
 cp electrum-nyc-icons/icons_rc.py $WINEPREFIX/drive_c/electrum-nyc/gui/qt/
 
