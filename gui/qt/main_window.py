@@ -62,6 +62,7 @@ from .transaction_dialog import show_transaction
 from .fee_slider import FeeSlider
 from .util import *
 
+DUST_LIMIT = 100000
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -1508,9 +1509,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             return
 
         amount = tx.output_value() if self.is_max else sum(map(lambda x:x[2], outputs))
-        if (amount < simple_config.DUST_LIMIT):
+        if (amount < DUST_LIMIT):
             self.show_error('\n'.join([
-                _("The transaction amount is at or below the dust threshold limit %d" % (simple_config.DUST_LIMIT /1000)),
+                _("The transaction amount is at or below the dust threshold limit %d" % (DUST_LIMIT /1000)),
                 _("Try to raise your transaction fee, or increase the amount to send.")
             ]))
             return
