@@ -10,6 +10,7 @@ from . import util
 from .util import (user_dir, print_error, PrintError,
                    NoDynamicFeeEstimates, format_fee_satoshis)
 from .i18n import _
+from .bitcoin import COIN
 
 FEE_ETA_TARGETS = [25, 10, 5, 2]
 FEE_DEPTH_TARGETS = [10000000, 5000000, 2000000, 1000000, 500000, 200000, 100000]
@@ -21,6 +22,9 @@ FEERATE_FALLBACK_STATIC_FEE = 100000
 FEERATE_DEFAULT_RELAY = 1000
 FEERATE_STATIC_VALUES = [10000, 20000, 30000, 50000, 70000, 100000, 150000, 200000, 300000, 500000]
 
+MAX_BLOCK_SIZE_GEN = 1000000 / 4 # 250k
+MAX_MONEY = 10000000000 * COIN
+DUST_LIMIT = 100000
 
 config = None
 
@@ -458,7 +462,7 @@ class SimpleConfig(PrintError):
             else:
                 fee_rate = self.eta_to_fee(self.get_fee_level())
         else:
-            fee_rate = self.get('fee_per_kb', FEERATE_FALLBACK_STATIC_FEE)
+            fee_rate = self.get('fee_per_kb', 0)
         return fee_rate
 
     def fee_per_byte(self):
@@ -468,8 +472,16 @@ class SimpleConfig(PrintError):
         fee_per_kb = self.fee_per_kb()
         return fee_per_kb / 1000 if fee_per_kb is not None else None
 
+    def add_fee_for_dust(self, outputs):
+        addedFee = 0
+        for output in ouputs:
+            if (output < DUST_LIMIT):
+                addedFee += FEERATE_FALLBACK_STATIC_FEE
+        return addedFee
+
     def estimate_fee(self, size):
-        fee_per_kb = self.fee_per_kb()
+        # use the static fee fallback as the base fee amount
+        fee_per_kb = FEERATE_FALLBACK_STATIC_FEE
         if fee_per_kb is None:
             raise NoDynamicFeeEstimates()
         return self.estimate_fee_for_feerate(fee_per_kb, size)
@@ -480,8 +492,22 @@ class SimpleConfig(PrintError):
         # The GUI for simplicity reasons only displays integer sat/byte,
         # and for the sake of consistency, we thus only use integer sat/byte in
         # the backend too.
+        #
+        # newyorkc if tx is below 27k -> no added fee
+        minFee = fee_per_kb
         fee_per_byte = int(fee_per_kb / 1000)
-        return int(fee_per_byte * size)
+        if (size < 27000):
+            fee_per_byte = 0
+            minFee = fee_per_byte * size
+        else: # add additional fee as tx takes more size
+            minFee = fee_per_byte * size
+            if(size >= MAX_BLOCK_SIZE_GEN /2):
+                if (size > MAX_BLOCK_SIZE_GEN):
+                    minFee = MAX_MONEY
+                else:
+                    minFee *= MAX_BLOCK_SIZE_GEN / (MAX_BLOCK_SIZE_GEN - size)
+
+        return int(minFee)
 
     def update_fee_estimates(self, key, value):
         self.fee_estimates[key] = value
