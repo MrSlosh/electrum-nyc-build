@@ -38,7 +38,7 @@ from kivy.lang import Builder
 from .uix.dialogs.installwizard import InstallWizard
 from .uix.dialogs import InfoBubble
 from .uix.dialogs import OutputList, OutputItem
-from electrum_nyc import simple_config
+from .electrum_nyc import simple_config
 
 #from kivy.core.window import Window
 #Window.softinput_mode = 'below_target'
