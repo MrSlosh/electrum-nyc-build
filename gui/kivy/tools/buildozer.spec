@@ -55,7 +55,7 @@ fullscreen = False
 android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, CAMERA
 
 # (int) Android API to use
-android.api = 19
+#android.api = 14
 
 # (int) Minimum API required (8 = Android 2.2 devices)
 #android.minapi = 8
@@ -70,7 +70,7 @@ android.api = 19
 android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-android.ndk_path = /opt/crystax-ndk-10.3.2/crystax-ndk-10.3.2
+android.ndk_path = /opt/crystax-ndk-10.3.2
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
@@ -146,7 +146,7 @@ p4a.source_dir = /opt/python-for-android
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
-build_dir = /build/buildozer-electrum
+
 
 # -----------------------------------------------------------------------------
 # List as sections
