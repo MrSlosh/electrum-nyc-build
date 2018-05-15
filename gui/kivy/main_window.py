@@ -637,6 +637,8 @@ class ElectrumWindow(App):
 
     def update_status(self, *dt):
         self.num_blocks = self.network.get_local_height()
+        if (self.num_blocks < self.network.get_server_height):
+            self.wallet.set_up_to_date(False)
         if not self.wallet:
             self.status = _("No Wallet")
             return
