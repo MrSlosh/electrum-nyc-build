@@ -2645,8 +2645,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         gui_widgets.append((nz_label, nz))
 
         msg = '\n'.join([
-            _('Time based: fee rate is based on average confirmation time estimates'),
-            _('Mempool based: fee rate is targeting a depth in the memory pool')
+            _('Static: NYCoin only uses fees in very few cases.'),
+            _('Therefor we only use Static fees')
             ]
         )
         fee_type_label = HelpLabel(_('Fee estimation') + ':', msg)
@@ -2658,6 +2658,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.config.set_key('dynamic_fees', x>0)
             #self.fee_slider.update()
         fee_type_combo.currentIndexChanged.connect(on_fee_type)
+        fee_type_combo.setEnabled(False)
         fee_widgets.append((fee_type_label, fee_type_combo))
 
         feebox_cb = QCheckBox(_('Edit fees manually'))
@@ -2839,7 +2840,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         def on_unconf(x):
             self.config.set_key('confirmed_only', bool(x))
-        conf_only = self.config.get('confirmed_only', False)
+        conf_only = self.config.get('confirmed_only', True)
         unconf_cb = QCheckBox(_('Spend only confirmed coins'))
         unconf_cb.setToolTip(_('Spend only confirmed inputs.'))
         unconf_cb.setChecked(conf_only)
