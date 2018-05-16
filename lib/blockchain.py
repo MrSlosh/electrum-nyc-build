@@ -33,8 +33,7 @@ from decimal import getcontext
 
 
 try:
-    import ltc_scrypt
-    getPoWHash = lambda x: scrypt.hash(x, x, N=1024, r=1, p=1, buflen=32)
+    from ltc_scrypt import getPoWHash
 except ImportError:
     util.print_msg("Warning: package scrypt not available; synchronization could be very slow")
     from .scrypt import scrypt_1024_1_1_80 as getPoWHash
