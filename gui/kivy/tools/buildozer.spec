@@ -58,7 +58,7 @@ android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, C
 android.api = 19
 
 # (int) Minimum API required (8 = Android 2.2 devices)
-#android.minapi = 8
+android.minapi = 14
 
 # (int) Android SDK version to use
 #android.sdk = 21
