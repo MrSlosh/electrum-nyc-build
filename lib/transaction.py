@@ -876,7 +876,7 @@ class Transaction:
         return s
 
     def set_rbf(self, rbf):
-        nSequence = 0xffffffff - (2 if rbf else 1)
+        nSequence = 0xffffffff - (2 if rbf else 0)
         for txin in self.inputs():
             txin['sequence'] = nSequence
 

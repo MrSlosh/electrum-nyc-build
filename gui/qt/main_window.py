@@ -1518,7 +1518,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         fee = tx.get_fee()
 
-        use_rbf = self.config.get('use_rbf', True)
+        use_rbf = self.config.get('use_rbf', False)
         if use_rbf:
             tx.set_rbf(True)
 
@@ -2673,7 +2673,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         fee_widgets.append((feebox_cb, None))
 
         use_rbf_cb = QCheckBox(_('Use Replace-By-Fee'))
-        use_rbf_cb.setChecked(self.config.get('use_rbf', True))
+        use_rbf_cb.setChecked(self.config.get('use_rbf', False))
         use_rbf_cb.setToolTip(
             _('If you check this box, your transactions will be marked as non-final,') + '\n' + \
             _('and you will have the possibility, while they are unconfirmed, to replace them with transactions that pay higher fees.') + '\n' + \
@@ -3132,7 +3132,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.show_error(_('Max fee exceeded'))
             return
         new_tx = self.wallet.cpfp(parent_tx, fee)
-        new_tx.set_rbf(True)
+        new_tx.set_rbf(False)
         self.show_transaction(new_tx)
 
     def bump_fee_dialog(self, tx):
