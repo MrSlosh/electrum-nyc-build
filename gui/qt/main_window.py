@@ -2672,16 +2672,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.fee_adv_controls.setVisible(bool(True))
         fee_widgets.append((feebox_cb, None))
 
-        use_rbf_cb = QCheckBox(_('Use Replace-By-Fee'))
-        use_rbf_cb.setChecked(self.config.get('use_rbf', False))
-        use_rbf_cb.setToolTip(
-            _('If you check this box, your transactions will be marked as non-final,') + '\n' + \
-            _('and you will have the possibility, while they are unconfirmed, to replace them with transactions that pay higher fees.') + '\n' + \
-            _('Note that some merchants do not accept non-final transactions until they are confirmed.'))
-        def on_use_rbf(x):
-            self.config.set_key('use_rbf', x == Qt.Checked)
-        use_rbf_cb.stateChanged.connect(on_use_rbf)
-        fee_widgets.append((use_rbf_cb, None))
+        #use_rbf_cb = QCheckBox(_('Use Replace-By-Fee'))
+        #use_rbf_cb.setChecked(self.config.get('use_rbf', False))
+        #use_rbf_cb.setToolTip(
+        #    _('If you check this box, your transactions will be marked as non-final,') + '\n' + \
+        #    _('and you will have the possibility, while they are unconfirmed, to replace them with transactions that pay higher fees.') + '\n' + \
+        #    _('Note that some merchants do not accept non-final transactions until they are confirmed.'))
+        #def on_use_rbf(x):
+        #    self.config.set_key('use_rbf', x == Qt.Checked)
+        #use_rbf_cb.stateChanged.connect(on_use_rbf)
+        #fee_widgets.append((use_rbf_cb, None))
 
         msg = _('OpenAlias record, used to receive coins and to sign payment requests.') + '\n\n'\
               + _('The following alias providers are available:') + '\n'\
