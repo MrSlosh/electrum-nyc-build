@@ -154,7 +154,7 @@ def sweep(privkeys, network, config, recipient, fee=None, imax=100):
 
     tx = Transaction.from_io(inputs, outputs, locktime=locktime)
     tx.BIP_LI01_sort()
-    tx.set_rbf(True)
+    tx.set_rbf(False)
     tx.sign(keypairs)
     return tx
 
@@ -1279,7 +1279,7 @@ class Abstract_Wallet(PrintError):
         # add a fee for dusty outputs
         fee = config.add_fee_for_dust(outputs)
         tx = self.make_unsigned_transaction(coins, outputs, config, fee, change_addr)
-        
+
         self.sign_transaction(tx, password)
 
 

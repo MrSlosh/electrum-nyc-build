@@ -1518,7 +1518,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         fee = tx.get_fee()
 
-        use_rbf = self.config.get('use_rbf', True)
+        use_rbf = self.config.get('use_rbf', False)
         if use_rbf:
             tx.set_rbf(True)
 
@@ -2645,8 +2645,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         gui_widgets.append((nz_label, nz))
 
         msg = '\n'.join([
-            _('Time based: fee rate is based on average confirmation time estimates'),
-            _('Mempool based: fee rate is targeting a depth in the memory pool')
+            _('Static: NYCoin only uses fees in very few cases.'),
+            _('Therefor we only use Static fees')
             ]
         )
         fee_type_label = HelpLabel(_('Fee estimation') + ':', msg)
@@ -2658,6 +2658,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.config.set_key('dynamic_fees', x>0)
             #self.fee_slider.update()
         fee_type_combo.currentIndexChanged.connect(on_fee_type)
+        fee_type_combo.setEnabled(False)
         fee_widgets.append((fee_type_label, fee_type_combo))
 
         feebox_cb = QCheckBox(_('Edit fees manually'))
@@ -2672,16 +2673,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.fee_adv_controls.setVisible(bool(True))
         fee_widgets.append((feebox_cb, None))
 
-        use_rbf_cb = QCheckBox(_('Use Replace-By-Fee'))
-        use_rbf_cb.setChecked(self.config.get('use_rbf', True))
-        use_rbf_cb.setToolTip(
-            _('If you check this box, your transactions will be marked as non-final,') + '\n' + \
-            _('and you will have the possibility, while they are unconfirmed, to replace them with transactions that pay higher fees.') + '\n' + \
-            _('Note that some merchants do not accept non-final transactions until they are confirmed.'))
-        def on_use_rbf(x):
-            self.config.set_key('use_rbf', x == Qt.Checked)
-        use_rbf_cb.stateChanged.connect(on_use_rbf)
-        fee_widgets.append((use_rbf_cb, None))
+        #use_rbf_cb = QCheckBox(_('Use Replace-By-Fee'))
+        #use_rbf_cb.setChecked(self.config.get('use_rbf', False))
+        #use_rbf_cb.setToolTip(
+        #    _('If you check this box, your transactions will be marked as non-final,') + '\n' + \
+        #    _('and you will have the possibility, while they are unconfirmed, to replace them with transactions that pay higher fees.') + '\n' + \
+        #    _('Note that some merchants do not accept non-final transactions until they are confirmed.'))
+        #def on_use_rbf(x):
+        #    self.config.set_key('use_rbf', x == Qt.Checked)
+        #use_rbf_cb.stateChanged.connect(on_use_rbf)
+        #fee_widgets.append((use_rbf_cb, None))
 
         msg = _('OpenAlias record, used to receive coins and to sign payment requests.') + '\n\n'\
               + _('The following alias providers are available:') + '\n'\
@@ -2839,7 +2840,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         def on_unconf(x):
             self.config.set_key('confirmed_only', bool(x))
-        conf_only = self.config.get('confirmed_only', False)
+        conf_only = self.config.get('confirmed_only', True)
         unconf_cb = QCheckBox(_('Spend only confirmed coins'))
         unconf_cb.setToolTip(_('Spend only confirmed inputs.'))
         unconf_cb.setChecked(conf_only)
@@ -2960,8 +2961,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             (fee_widgets, _('Fees')),
             (tx_widgets, _('Transactions')),
             (gui_widgets, _('Appearance')),
-            (fiat_widgets, _('Fiat')),
-            (id_widgets, _('Identity')),
+        #    (fiat_widgets, _('Fiat')),
+        #    (id_widgets, _('Identity')),
         ]
         for widgets, name in tabs_info:
             tab = QWidget()
@@ -3132,7 +3133,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.show_error(_('Max fee exceeded'))
             return
         new_tx = self.wallet.cpfp(parent_tx, fee)
-        new_tx.set_rbf(True)
+        new_tx.set_rbf(False)
         self.show_transaction(new_tx)
 
     def bump_fee_dialog(self, tx):
