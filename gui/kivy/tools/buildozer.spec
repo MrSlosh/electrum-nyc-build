@@ -31,7 +31,7 @@ version.filename = %(source.dir)s/contrib/versions.py
 #version = 1.9.8
 
 # (list) Application requirements
-requirements = python3crystax==3.6, android, openssl, plyer, kivy==master
+requirements = python3crystax, android, openssl, plyer, kivy==master
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/gui/kivy/theming/splash.png
@@ -58,7 +58,7 @@ android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, C
 android.api = 19
 
 # (int) Minimum API required (8 = Android 2.2 devices)
-android.minapi = 14
+android.minapi = 19
 
 # (int) Android SDK version to use
 #android.sdk = 21
