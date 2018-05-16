@@ -1270,6 +1270,7 @@ class Abstract_Wallet(PrintError):
         tx.BIP_LI01_sort()
         # Timelock tx to current height.
         tx.locktime = self.get_local_height()
+
         run_hook('make_unsigned_transaction', self, tx)
         return tx
 
@@ -1278,7 +1279,10 @@ class Abstract_Wallet(PrintError):
         # add a fee for dusty outputs
         fee = config.add_fee_for_dust(outputs)
         tx = self.make_unsigned_transaction(coins, outputs, config, fee, change_addr)
+        
         self.sign_transaction(tx, password)
+
+
         return tx
 
     def is_frozen(self, addr):

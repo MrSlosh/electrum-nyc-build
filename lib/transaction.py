@@ -872,7 +872,7 @@ class Transaction:
         # Script length, script, sequence
         s += var_int(len(script)//2)
         s += script
-        s += int_to_hex(txin.get('sequence', 0xffffffff - 1), 4)
+        s += int_to_hex(txin.get('sequence', 0xffffffff), 4)
         return s
 
     def set_rbf(self, rbf):
@@ -968,7 +968,15 @@ class Transaction:
         return self.input_value() - self.output_value()
 
     def is_final(self):
-        return not any([x.get('sequence', 0xffffffff - 1) < 0xffffffff - 1 for x in self.inputs()])
+        for x in self.inputs():
+            # print(str(x.get('sequence')))
+            #  if(x.get('sequence') == None):
+            #      x['sequence'] = 0xffffffff
+            if(x.get('sequence',0xffffffff) != 0xffffffff):
+                return False
+
+        return True
+        #return not any([x.get('sequence', 0xffffffff - 1) < 0xffffffff - 1 for x in self.inputs()])
 
     @profiler
     def estimated_size(self):
