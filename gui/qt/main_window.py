@@ -2960,8 +2960,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             (fee_widgets, _('Fees')),
             (tx_widgets, _('Transactions')),
             (gui_widgets, _('Appearance')),
-            (fiat_widgets, _('Fiat')),
-            (id_widgets, _('Identity')),
+        #    (fiat_widgets, _('Fiat')),
+        #    (id_widgets, _('Identity')),
         ]
         for widgets, name in tabs_info:
             tab = QWidget()
