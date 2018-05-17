@@ -539,14 +539,14 @@ def time_difference(distance_in_time, include_seconds):
         return "over %d years" % (round(distance_in_minutes / 525600))
 
 mainnet_block_explorers = {
-    'Nycoin.community': ('https://explorer.nycoin.community/',
+    'NYCoin Community': ('https://explorer.nycoin.community/',
                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Nycoin.info': ('https://explorer-testnet.nycoin.info/',
+    'NYCoin Info': ('https://explorer.nycoin.info/',
                        {'tx': 'tx/', 'addr': 'address/'}),
 }
 
 testnet_block_explorers = {
-    'Nycoin.info': ('https://explorer-testnet.nycoin.info/',
+    'NYCoin Community': ('https://explorer-testnet.nycoin.info/',
                        {'tx': 'tx/', 'addr': 'address/'}),
 }
 
@@ -555,7 +555,7 @@ def block_explorer_info():
     return testnet_block_explorers if constants.net.TESTNET else mainnet_block_explorers
 
 def block_explorer(config):
-    return config.get('block_explorer', 'LiteCore')
+    return config.get('block_explorer', 'NYCoin Community')
 
 def block_explorer_tuple(config):
     return block_explorer_info().get(block_explorer(config))

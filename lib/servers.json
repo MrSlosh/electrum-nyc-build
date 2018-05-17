@@ -2,7 +2,7 @@
   "electrumx.nycoin.community": {
     "pruning": "-",
     "t": "50001",
-	"s": "50002",
+    "s": "50002",
     "version": "1.2"
   },
   "electrumx.nycoin.info": {
