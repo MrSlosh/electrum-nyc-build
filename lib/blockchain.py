@@ -189,8 +189,10 @@ class Blockchain(util.PrintError):
                 raise BaseException("insufficient proof of work: %s vs target %s" % (int('0x' + _powhash, 16), target))
 
     def should_check_bits_target(self, height):
-         index = height // 2016
-         return (index > len(self.checkpoints) + 1) or \
+        if 'ANDROID_DATA' in os.environ:
+            return False
+        index = height // 2016
+        return (index > len(self.checkpoints) + 1) or \
              (index < len(self.checkpoints) and height % 2016 == 0)
 
     def verify_chunk(self, index, data):

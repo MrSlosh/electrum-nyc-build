@@ -51,6 +51,9 @@ fullscreen = False
 # Android specific
 #
 
+# (str) specific architecture
+android.arch = armeabi-v7a
+
 # (list) Permissions
 android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, CAMERA
 
@@ -111,7 +114,7 @@ android.manifest.intent_filters = gui/kivy/tools/bitcoin_intent.xml
 android.manifest.launch_mode = singleTask
 
 # (list) Android additionnal libraries to copy into libs/armeabi
-android.add_libs_armeabi-v7a = lib/android/*.so
+android.add_libs_armeabi_v7a = libs/android/*.so
 
 # (bool) Indicate whether the screen should stay on
 # Don't forget to add the WAKE_LOCK permission if you set this to True

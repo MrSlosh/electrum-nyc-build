@@ -26,7 +26,7 @@ for repo in electrum-nyc-build electrum-nyc-locale electrum-nyc-icons; do
 	git checkout master
 	cd ..
     else
-	URL=https://github.com/MrSlosh/$repo.git
+	URL=https://github.com/NewYorkCoin-NYC/$repo.git
 	git clone -b master $URL $repo
     fi
 done
