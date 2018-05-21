@@ -31,7 +31,7 @@ version.filename = %(source.dir)s/contrib/versions.py
 #version = 1.9.8
 
 # (list) Application requirements
-requirements = python3crystax, android, openssl, plyer, kivy==master
+requirements = python3crystax==3.6, android, openssl, plyer, kivy==master
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/gui/kivy/theming/splash.png
@@ -51,6 +51,9 @@ fullscreen = False
 # Android specific
 #
 
+# (str) specific architecture
+android.arch = armeabi-v7a
+
 # (list) Permissions
 android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, CAMERA
 
@@ -64,7 +67,7 @@ android.minapi = 19
 #android.sdk = 21
 
 # (str) Android NDK version to use
-#android.ndk = 9
+android.ndk = 10.3.2
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
@@ -111,7 +114,7 @@ android.manifest.intent_filters = gui/kivy/tools/bitcoin_intent.xml
 android.manifest.launch_mode = singleTask
 
 # (list) Android additionnal libraries to copy into libs/armeabi
-#android.add_libs_armeabi = lib/android/*.so
+android.add_libs_armeabi_v7a = libs/android/*.so
 
 # (bool) Indicate whether the screen should stay on
 # Don't forget to add the WAKE_LOCK permission if you set this to True

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME_ROOT=electrum-nyc-build
+NAME_ROOT=electrum-nyc
 PYTHON_VERSION=3.5.4
 
 # These settings probably don't need any change
@@ -26,7 +26,7 @@ for repo in electrum-nyc-build electrum-nyc-locale electrum-nyc-icons; do
 	git checkout master
 	cd ..
     else
-	URL=https://github.com/MrSlosh/$repo.git
+	URL=https://github.com/NewYorkCoin-NYC/$repo.git
 	git clone -b master $URL $repo
     fi
 done
